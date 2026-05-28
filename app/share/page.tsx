@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-export default function SharePage() {
+// ── Inner component that uses useSearchParams ──────────────
+function ShareContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get("id");
-  const keyB64 = searchParams.get("key"); // ← read from URL
+  const keyB64 = searchParams.get("key");
 
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -16,7 +17,6 @@ export default function SharePage() {
 
   useEffect(() => {
     if (!id || !keyB64) return;
-
     const url = `${window.location.origin}/d/${id}#${keyB64}`;
     setShareUrl(url);
     setReady(true);
@@ -43,9 +43,7 @@ export default function SharePage() {
       <div className="w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-lg p-6 font-mono">
         <div className="mb-6">
           <h1 className="text-green-400 text-xl font-bold">signal.drop</h1>
-          <p className="text-neutral-500 text-sm">
-            // drop created successfully
-          </p>
+          <p className="text-neutral-500 text-sm">drop created successfully!</p>
         </div>
 
         <div className="flex flex-col items-center mb-6">
@@ -93,5 +91,22 @@ export default function SharePage() {
         </p>
       </div>
     </div>
+  );
+}
+
+// ── Outer component that wraps with Suspense ───────────────
+export default function SharePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-green-400 font-mono text-sm animate-pulse">
+            generating link...
+          </p>
+        </div>
+      }
+    >
+      <ShareContent />
+    </Suspense>
   );
 }
